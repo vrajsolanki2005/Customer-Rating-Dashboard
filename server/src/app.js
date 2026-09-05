@@ -3,6 +3,7 @@ const cors = require("cors");
 
 const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
+const storeRoutes = require("./routes/store.routes");
 const errorHandler = require("./middleware/error.middleware");
 
 const app = express();
@@ -26,6 +27,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/stores", storeRoutes);
 
 app.use(errorHandler);
 
