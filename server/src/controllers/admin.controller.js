@@ -466,6 +466,99 @@ const getStores = async (req, res, next) => {
   }
 };
 
+const updateUser = async (req, res, next) => {
+  try {
+    const userId = Number(req.params.id);
+    const { name, email, address, role } = req.body;
+
+    const existing = await prisma.user.findUnique({ where: { id: userId } });
+    if (!existing) return res.status(404).json({ success: false, message: "User not found" });
+
+    if (email && email !== existing.email) {
+      const taken = await prisma.user.findUnique({ where: { email } });
+      if (taken) return res.status(409).json({ success: false, message: "Email is already registered" });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(name && { name }),
+        ...(email && { email }),
+        ...(address && { address }),
+        ...(role && { role }),
+      },
+      select: { id: true, name: true, email: true, address: true, role: true, createdAt: true },
+    });
+
+    return res.status(200).json({ success: true, message: "User updated successfully", data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteUser = async (req, res, next) => {
+  try {
+    const userId = Number(req.params.id);
+
+    const existing = await prisma.user.findUnique({ where: { id: userId } });
+    if (!existing) return res.status(404).json({ success: false, message: "User not found" });
+
+    if (existing.role === "ADMIN") {
+      return res.status(400).json({ success: false, message: "Cannot delete an admin account" });
+    }
+
+    await prisma.user.delete({ where: { id: userId } });
+    return res.status(200).json({ success: true, message: "User deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateStore = async (req, res, next) => {
+  try {
+    const storeId = Number(req.params.id);
+    const { name, email, address, ownerId } = req.body;
+
+    const existing = await prisma.store.findUnique({ where: { id: storeId } });
+    if (!existing) return res.status(404).json({ success: false, message: "Store not found" });
+
+    if (ownerId) {
+      const owner = await prisma.user.findUnique({ where: { id: ownerId } });
+      if (!owner) return res.status(404).json({ success: false, message: "Store owner not found" });
+      if (owner.role !== "STORE_OWNER") return res.status(400).json({ success: false, message: "Selected user is not a store owner" });
+    }
+
+    const store = await prisma.store.update({
+      where: { id: storeId },
+      data: {
+        ...(name && { name }),
+        ...(email && { email }),
+        ...(address && { address }),
+        ...(ownerId !== undefined && { ownerId: ownerId ?? null }),
+      },
+      include: { owner: { select: { id: true, name: true, email: true, role: true } } },
+    });
+
+    return res.status(200).json({ success: true, message: "Store updated successfully", data: store });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteStore = async (req, res, next) => {
+  try {
+    const storeId = Number(req.params.id);
+
+    const existing = await prisma.store.findUnique({ where: { id: storeId } });
+    if (!existing) return res.status(404).json({ success: false, message: "Store not found" });
+
+    await prisma.store.delete({ where: { id: storeId } });
+    return res.status(200).json({ success: true, message: "Store deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createUser,
   createStore,
@@ -473,4 +566,8 @@ module.exports = {
   getUsers,
   getUserDetails,
   getStores,
+  updateUser,
+  deleteUser,
+  updateStore,
+  deleteStore,
 };

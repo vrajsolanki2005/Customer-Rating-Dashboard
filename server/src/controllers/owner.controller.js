@@ -195,6 +195,30 @@ const getOwnerDashboard = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  getOwnerDashboard,
+const updateStore = async (req, res, next) => {
+  try {
+    const storeId = Number(req.params.id);
+    const ownerId = req.user.id;
+    const { name, email, address } = req.body;
+
+    const store = await prisma.store.findUnique({ where: { id: storeId } });
+    if (!store) return res.status(404).json({ success: false, message: "Store not found" });
+    if (store.ownerId !== ownerId) return res.status(403).json({ success: false, message: "You do not own this store" });
+
+    const updated = await prisma.store.update({
+      where: { id: storeId },
+      data: {
+        ...(name && { name }),
+        ...(email && { email }),
+        ...(address && { address }),
+      },
+      select: { id: true, name: true, email: true, address: true },
+    });
+
+    return res.status(200).json({ success: true, message: "Store updated successfully", data: updated });
+  } catch (error) {
+    next(error);
+  }
 };
+
+module.exports = { getOwnerDashboard, updateStore };

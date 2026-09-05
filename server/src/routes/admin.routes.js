@@ -9,6 +9,8 @@ const validate = require("../middleware/validate.middleware");
 const {
   createUserSchema,
   createStoreSchema,
+  updateUserSchema,
+  updateStoreSchema,
 } = require("../validators/admin.validator");
 
 const {
@@ -18,6 +20,10 @@ const {
   getUsers,
   getUserDetails,
   getStores,
+  updateUser,
+  deleteUser,
+  updateStore,
+  deleteStore,
 } = require("../controllers/admin.controller");
 
 // Every route below requires ADMIN
@@ -29,22 +35,15 @@ router.get("/dashboard", getDashboard);
 
 // Users
 router.get("/users", getUsers);
-
 router.get("/users/:id", getUserDetails);
-
-router.post(
-  "/users",
-  validate(createUserSchema),
-  createUser
-);
+router.post("/users", validate(createUserSchema), createUser);
+router.patch("/users/:id", validate(updateUserSchema), updateUser);
+router.delete("/users/:id", deleteUser);
 
 // Stores
 router.get("/stores", getStores);
-
-router.post(
-  "/stores",
-  validate(createStoreSchema),
-  createStore
-);
+router.post("/stores", validate(createStoreSchema), createStore);
+router.patch("/stores/:id", validate(updateStoreSchema), updateStore);
+router.delete("/stores/:id", deleteStore);
 
 module.exports = router;
