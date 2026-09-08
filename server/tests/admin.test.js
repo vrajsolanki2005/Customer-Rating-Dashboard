@@ -279,12 +279,12 @@ describe("Admin API", () => {
       expect(res.body.success).toBe(false);
     });
 
-    test("400 - rejects store name shorter than 20 characters", async () => {
+    test("400 - rejects store name shorter than 10 characters", async () => {
       const res = await request(app)
         .post("/api/admin/stores")
         .set("Authorization", `Bearer ${adminToken}`)
         .send({
-          name: "Short Name",
+          name: "Short",
           email: `store_${Date.now()}@example.com`,
           address: "Main Road, Vadodara",
           ownerId: owner.id,

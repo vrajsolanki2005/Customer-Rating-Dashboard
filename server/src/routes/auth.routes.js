@@ -11,7 +11,7 @@ const {
 } = require("../controllers/auth.controller");
 
 const authenticate = require("../middleware/auth.middleware");
-const validate = require("../middleware/validate");
+const validate = require("../middleware/validate.middleware");
 
 const {
   signupSchema,
